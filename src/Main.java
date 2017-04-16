@@ -9,6 +9,12 @@ import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSetMetaData;
 
 public class Main {
     //Constants
@@ -20,9 +26,17 @@ public class Main {
     public static final double CYCLES = 192848.0;
     private static HashSet<String> dictionary = null;
     private static HashMap<Integer, Double> coreCost = null;
+    private static String framework = "embedded";
+    public static String driver = "org.apache.derby.jdbc.EmbeddedDriver";
+    private static String dbURL = "jdbc:derby:PassDict;create=true;";
+    private static String tableName = "password";
+    // jdbc Connection
+    private static Connection conn = null;
+    private static Statement stmt = null;
 
 
     public static void main(String args[]) {
+        createConnection();
         String password = "";
         Scanner in = null;
         Scanner sc = null;
@@ -39,14 +53,12 @@ public class Main {
         units.add("Decades");
         units.add("Centuries");
         try {
-            file = new FileInputStream("cracklib-small");
+            file = new FileInputStream("realhuman_phill.txt");
             sc = new Scanner(file, "UTF-8");
             in = new Scanner(new File("passwords.txt"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        dictionary = new HashSet<String>();
-
         coreCost.put(1, 0.0136);
         coreCost.put(2, 0.083);
         coreCost.put(4, 0.2015);
@@ -55,15 +67,10 @@ public class Main {
         coreCost.put(36, 1.591);
         coreCost.put(64, 3.447);
 
-        while (sc.hasNextLine()) {
-            dictionary.add(sc.nextLine());
-        }
-        int count = 0;
-        System.out.println("----------- " + dictionary.size() + " -------------");
         while (in.hasNext()) {
             password = in.next();
-            if (dictionary.contains(password)) {
-                System.out.println("Your password: " + password + " was found in a simple dictionary lookup!");
+            if (selectWord(password) == true) {
+                System.out.println("Your password: " + password + " was found in a password dictionary lookup!");
             }
             double iPool = analyze(password);
             double dEntropy = entropy(password.length(), iPool);
@@ -101,6 +108,64 @@ public class Main {
             System.out.println("Your password (on average) will be cracked in: " + avgRes + " " + aUnit + " and will be guaranteed to be cracked in " + result + " " + unit);
         }
 
+        shutdown();
+    }
+
+    private static void createConnection()
+    {
+        try
+        {
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+            //Get a connection
+            conn = DriverManager.getConnection(dbURL);
+        }
+        catch (Exception except)
+        {
+            except.printStackTrace();
+        }
+    }
+
+    private static boolean selectWord(String pword){
+        boolean retVal = false;
+        try
+        {
+            stmt = conn.createStatement();
+            ResultSet results = stmt.executeQuery("select pass from " + tableName + " where pass='" + pword + "'");
+            ResultSetMetaData rsmd = results.getMetaData();
+            if (!results.next()){
+                retVal = false;
+            } else {
+                retVal = true;
+            }
+
+            results.close();
+            stmt.close();
+        }
+        catch (SQLException sqlExcept)
+        {
+            sqlExcept.printStackTrace();
+        }
+        return retVal;
+    }
+
+    private static void shutdown()
+    {
+        try
+        {
+            if (stmt != null)
+            {
+                stmt.close();
+            }
+            if (conn != null)
+            {
+                DriverManager.getConnection(dbURL + ";shutdown=true");
+                conn.close();
+            }
+        }
+        catch (SQLException sqlExcept)
+        {
+
+        }
 
     }
 
@@ -150,4 +215,5 @@ public class Main {
         //TODO program gustafason's law to scale from 1 core
         return 2.0;
     }
+
 }
