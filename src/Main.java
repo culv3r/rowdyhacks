@@ -2,8 +2,8 @@
  * Created by culv3r on 4/15/17.
  */
 
+import java.io.DataOutput;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -24,6 +24,9 @@ public class Main {
     public static final double SPECIAL = 32.0;
     public static final double SPACE = 1.0;
     public static final double CYCLES = 192848.0;
+    public static final double GUS_EIGHT = 7.3;
+    public static final double GUS_TSIX = 32.5;
+    public static final double GUS_FULL = 57.7;
     private static HashSet<String> dictionary = null;
     private static HashMap<Integer, Double> coreCost = null;
     private static String framework = "embedded";
@@ -35,14 +38,14 @@ public class Main {
     private static Statement stmt = null;
 
 
+
     public static void main(String args[]) {
         createConnection();
         String password = "";
         Scanner in = null;
-        Scanner sc = null;
-        FileInputStream file = null;
         String unit = "";
         String aUnit = "";
+        Set<Integer> keys = null;
         coreCost = new HashMap<Integer, Double>();
         ArrayList<String> units = new ArrayList<String>();
         units.add("Seconds");
@@ -53,59 +56,106 @@ public class Main {
         units.add("Decades");
         units.add("Centuries");
         try {
-            file = new FileInputStream("realhuman_phill.txt");
-            sc = new Scanner(file, "UTF-8");
             in = new Scanner(new File("passwords.txt"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
         coreCost.put(1, 0.0136);
-        coreCost.put(2, 0.083);
-        coreCost.put(4, 0.2015);
+        //coreCost.put(2, 0.083);
+        //coreCost.put(4, 0.2015);
         coreCost.put(8, 0.4035);
-        coreCost.put(16, 0.862);
+        //coreCost.put(16, 0.862);
         coreCost.put(36, 1.591);
         coreCost.put(64, 3.447);
 
         while (in.hasNext()) {
             password = in.next();
-            if (selectWord(password) == true) {
-                System.out.println("Your password: " + password + " was found in a password dictionary lookup!");
-            }
+            int dictResult = selectWord(password);
             double iPool = analyze(password);
             double dEntropy = entropy(password.length(), iPool);
-            System.out.println("Password: " + password + " has an entropy of " + dEntropy);
+            //System.out.println("Password: " + password + " has an entropy of " + dEntropy);
             double hackTime = Math.pow(2,dEntropy)/CYCLES;
+            double hackGus = hackTime;
             double hackAvg = hackTime/2.0;
             ArrayList<Double> dList = new ArrayList<>();
             dList.add(hackTime);
             dList.add(hackAvg);
-            for (int k = 0; k< dList.size(); k++){
+            for (int k = 0; k< dList.size(); k++) {
                 int i = 0;
                 double dWork = dList.get(k);
-                for (i = 0; i<units.size(); i++){
-                    double [] time = {60.0, 60.0, 24.0, 365.0, 10.0, 10.0};
-                    if (i<= 5 && dWork >= time[i]){
-                        dWork = dWork/time[i];
-                    }
-                    else{
-                        if (k == 0){
+                for (i = 0; i < units.size(); i++) {
+                    double[] time = {60.0, 60.0, 24.0, 365.0, 10.0, 10.0};
+                    if (i <= 5 && dWork >= time[i]) {
+                        dWork = dWork / time[i];
+                    } else {
+                        if (k == 0) {
                             unit = units.get(i).toString();
-                            dList.set(k,dWork);
+                            dList.set(k, dWork);
                         } else {
                             aUnit = units.get(i).toString();
-                            dList.set(k,dWork);
+                            dList.set(k, dWork);
                         }
                         break;
                     }
+
                 }
             }
+                double costSingle = ((hackGus/60)/60)*coreCost.get(1);
+                double timeEight = 0;
+                String unitEight = "";
+                double timeTSix = 0;
+                String unitTSix = "";
+                double timeFull = 0;
+                String unitFull = "";
+                double gusCostEight = 0;
+                double gusCostTSix = 0;
+                double gusCostFull = 0;
+                double gusEight = (hackGus/GUS_EIGHT)/2;
+                gusCostEight = ((hackGus/60)/60)*coreCost.get(8);
+                double gusTSix = (hackGus/GUS_TSIX)/2;
+                gusCostTSix = ((hackGus/60)/60)*coreCost.get(36);
+                double gusFull = (hackGus/GUS_FULL)/2;
+                gusCostFull = ((hackGus/60)/60)*coreCost.get(64);
+                ArrayList<Double> gList = new ArrayList<>();
+                gList.add(gusEight);
+                gList.add(gusTSix);
+                gList.add(gusFull);
+                for (int m = 0; m< gList.size(); m++) {
+                int l = 0;
+                double dWork = gList.get(m);
+                for (l = 0; l < units.size(); l++) {
+                    double[] time = {60.0, 60.0, 24.0, 365.0, 10.0, 10.0};
+                    if (l <= 5 && dWork >= time[l]) {
+                        dWork = dWork / time[l];
+                    } else {
+                        if (m == 0) {
+                            unitEight = units.get(l).toString();
+                            gList.set(m, dWork);
+                        } else if (m == 1) {
+                            unitTSix = units.get(l).toString();
+                            gList.set(m, dWork);
+                        } else if (m == 2){
+                            unitFull = units.get(l).toString();
+                            gList.set(m, dWork);
+                        }
+                        break;
+                    }
+
+                }
+            }
+
+            timeEight = gList.get(0);
+            timeTSix = gList.get(1);
+            timeFull = gList.get(2);
+
 
 
             DecimalFormat newFormat = new DecimalFormat("#.##");
             double avgRes = Double.valueOf(newFormat.format(dList.get(1)));
             double result = Double.valueOf(newFormat.format(dList.get(0)));
-            System.out.println("Your password (on average) will be cracked in: " + avgRes + " " + aUnit + " and will be guaranteed to be cracked in " + result + " " + unit);
+            String resArr = dictResult + ";" + avgRes + ";" + aUnit + ";" + result + ";" + unit + ";" + costSingle + ";" + timeEight + ";" + unitEight + ";" + gusCostEight + ";" +
+                    timeTSix + ";" + unitTSix + ";" + gusCostTSix + ";" + timeFull + ";" + unitFull + ";" + gusCostFull;
+            System.out.println(resArr);
         }
 
         shutdown();
@@ -125,17 +175,17 @@ public class Main {
         }
     }
 
-    private static boolean selectWord(String pword){
-        boolean retVal = false;
+    private static int selectWord(String pword){
+        int retVal = 0;
         try
         {
             stmt = conn.createStatement();
             ResultSet results = stmt.executeQuery("select pass from " + tableName + " where pass='" + pword + "'");
             ResultSetMetaData rsmd = results.getMetaData();
             if (!results.next()){
-                retVal = false;
+                retVal = 0;
             } else {
-                retVal = true;
+                retVal = 1;
             }
 
             results.close();
@@ -212,8 +262,9 @@ public class Main {
     }
 
     public static double gustaf(int cores){
-        //TODO program gustafason's law to scale from 1 core
-        return 2.0;
+        double dNum = cores + (1-cores)*0.1;
+        System.out.println(dNum);
+        return dNum;
     }
 
 }

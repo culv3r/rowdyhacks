@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
-Sun Apr 16 01:11:39 CDT 2017:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.13.1.1 - (1765088): instance a816c00e-015b-7563-602c-00000a7e7390 
-on database directory /home/culv3r/IdeaProjects/passwordHash/PassDict with class loader sun.misc.Launcher$AppClassLoader@5e2de80c 
+Sun Apr 16 10:23:55 CDT 2017:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.13.1.1 - (1765088): instance a816c00e-015b-775c-febd-00000a44f160 
+on database directory /home/culv3r/IdeaProjects/passwordHash/PassDict with class loader sun.misc.Launcher$AppClassLoader@18b4aac2 
 Loaded from file:/opt/Apache/db-derby-10.13.1.1-bin/lib/derby.jar
 java.vendor=Oracle Corporation
 java.runtime.version=1.8.0_121-b13
@@ -12,8 +12,5 @@ os.version=4.10.8-1-ARCH
 derby.system.home=null
 Database Class Loader started - derby.database.classpath=''
 ----------------------------------------------------------------
-Sun Apr 16 01:13:54 CDT 2017: Shutting down Derby engine
-----------------------------------------------------------------
-Sun Apr 16 01:13:54 CDT 2017:
-Shutting down instance a816c00e-015b-7563-602c-00000a7e7390 on database directory /home/culv3r/IdeaProjects/passwordHash/PassDict with class loader sun.misc.Launcher$AppClassLoader@5e2de80c 
-----------------------------------------------------------------
+Sun Apr 16 10:26:44 CDT 2017:
+Shutting down instance a816c00e-015b-775c-febd-00000a44f160 on database directory /home/culv3r/IdeaProjects/passwordHash/PassDict with class loader sun.misc.Launcher$AppClassLoader@18b4aac2 
